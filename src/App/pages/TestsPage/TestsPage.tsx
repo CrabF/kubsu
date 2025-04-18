@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { getQuestions, Question } from "../../api/api";
-import styles from "./tests-page.module.css";
+import { getQuestions } from "api/api";
+import styles from "./TestsPage.module.css";
+import { Question } from "src/api/types";
 
 export const TestsPage = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
