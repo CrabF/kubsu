@@ -1,3 +1,11 @@
+export interface Inputs {
+  phone_number: string;
+  surname: string;
+  name: string;
+  patronymic: string;
+  city: string;
+}
+
 type Answer = {
   question_id: string;
   answer_ids: string[];

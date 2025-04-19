@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
+    "strict": true,
     "baseUrl": ".",
     "paths": {
       "src/*": ["src/*"],
       "assets/*": ["src/assets/*"],
       "pages/*": ["src/App/pages/*"],
       "api/*": ["src/api/*"],
-      "styles/*": ["src/styles/*"]
+      "styles/*": ["src/styles/*"],
+      "components/*": ["src/components/*"]
     }
   },
   "files": [],
