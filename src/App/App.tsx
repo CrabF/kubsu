@@ -1,14 +1,17 @@
 import { MainPage } from "pages/MainPage";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { TestsPage } from "pages/TestsPage";
 import "styles/styles.css";
+import { Layout } from "src/components";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<MainPage />} />
-      <Route path="/tests" element={<TestsPage />} />
-      <Route path="*"></Route>
+      <Route element={<Layout />}>
+        <Route path="/" element={<MainPage />} />
+        <Route path="/tests" element={<TestsPage />} />
+        <Route path="*" element={<Navigate to={"/"} />} />
+      </Route>
     </Routes>
   );
 }

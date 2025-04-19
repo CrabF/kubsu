@@ -1,0 +1,31 @@
+.container {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    #2e7f3e 0%,
+    white 30%,
+    white 70%,
+    #2e7f3e 100%
+  );
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.header {
+  background-color: #000000b2;
+  height: auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 20px;
+  flex-wrap: wrap;
+}
+
+.title {
+  text-align: center;
+  font-size: 32px;
+}

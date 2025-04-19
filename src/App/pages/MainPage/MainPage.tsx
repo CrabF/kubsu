@@ -1,42 +1,58 @@
 import { SubmitHandler, useForm } from "react-hook-form";
-import { Logo } from "assets/logo";
 import styles from "./MainPage.module.css";
 import { getUserInfo } from "api/api";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserData, UserResults } from "src/api/types";
+import { UserResults } from "src/api/types";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-interface Inputs {
-  phone_number: string;
-  surname: string;
-  name: string;
-  patronymic: string;
-  city: string;
-}
+const schema = z.object({
+  phone_number: z.string().length(11, 'Введите + и 10 цифр'),
+  surname: z
+    .string()
+    .min(1, { message: "Это обязательное поле" })
+    .max(50, { message: "Максимальное количество символов: 50" }),
+  name: z
+    .string()
+    .min(1, { message: "Это обязательное поле" })
+    .max(50, { message: "Максимальное количество символов: 50" }),
+  patronymic: z
+    .string()
+    .min(1, { message: "Это обязательное поле" })
+    .max(50, { message: "Максимальное количество символов: 50" }),
+  city: z.string().optional(),
+});
+
+type Schema = z.infer<typeof schema>;
 
 export const MainPage = () => {
   const [userInfo, setUserInfo] = useState<UserResults>();
+  const [errorSubmit, setErrorSubmit] = useState("");
   const navigate = useNavigate();
-
-  const handleClick = async (userData: UserData) => {
-    try {
-      const data = await getUserInfo(userData);
-      setUserInfo(data);
-    } catch (error) {
-      console.error("Ошибка получения данных:", error);
-    }
-  };
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
-  } = useForm<Inputs>();
+  } = useForm<Schema>({
+    mode: "onTouched",
+    shouldFocusError: true,
+    resolver: zodResolver(schema),
+  });
 
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
-    handleClick(data);
-    navigate('/tests')
+  const onSubmit: SubmitHandler<Schema> = async (inputsData) => {
+    console.log(inputsData);
+    try {
+      const resolve = await getUserInfo(inputsData);
+      setUserInfo(resolve);
+      navigate("/tests");
+    } catch (error) {
+      setErrorSubmit(
+        "Не удалось получить данные пользователя. Попробуйте ещё раз."
+      );
+      console.error("Ошибка получения данных:", error);
+    }
   };
 
   useEffect(() => {
@@ -47,47 +63,76 @@ export const MainPage = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <Logo />
-        <h1>
-          Кубанский государственный
-          <br /> аграрный университет
-        </h1>
-      </div>
       <form onSubmit={handleSubmit(onSubmit)} className={styles.form} action="">
-        <input
-          {...register("phone_number", { required: true })}
-          className={styles.input}
-          placeholder="Номер телефона"
-          type="text"
-        />
-        <input
-          {...register("surname", { required: true })}
-          className={styles.input}
-          placeholder="Фамилия"
-          type="tel"
-        />
-        <input
-          {...register("name", { required: true })}
-          className={styles.input}
-          placeholder="Имя"
-          type="text"
-        />
-        <input
-          {...register("patronymic", { required: true })}
-          className={styles.input}
-          placeholder="Отчество"
-          type="text"
-        />
-        <input
-          {...register("city", { required: false })}
-          className={styles.input}
-          placeholder="Город"
-          type="text"
-        />
+        <label className={styles.label}>
+          Номер телефона *
+          <input
+            {...register("phone_number")}
+            className={styles.input}
+            placeholder="+79"
+            type="number"
+          />
+          {errors.phone_number && (
+            <span className={styles.error}>{errors.phone_number.message}</span>
+          )}
+        </label>
+
+        <label className={styles.label}>
+          Ваша фамилия *
+          <input
+            {...register("surname", { required: true })}
+            className={styles.input}
+            placeholder="Фамилия"
+            type="tel"
+          />
+          {errors.surname && (
+            <span className={styles.error}>{errors.surname.message}</span>
+          )}
+        </label>
+
+        <label className={styles.label}>
+          Ваше имя *
+          <input
+            {...register("name", { required: true })}
+            className={styles.input}
+            placeholder="Имя"
+            type="text"
+          />
+          {errors.name && (
+            <span className={styles.error}>{errors.name.message}</span>
+          )}
+        </label>
+
+        <label className={styles.label}>
+          Ваше отчество *
+          <input
+            {...register("patronymic", { required: true })}
+            className={styles.input}
+            placeholder="Отчество"
+            type="text"
+          />
+          {errors.patronymic && (
+            <span className={styles.error}>{errors.patronymic.message}</span>
+          )}
+        </label>
+
+        <label className={styles.label}>
+          Город проживания
+          <input
+            {...register("city", { required: false })}
+            className={styles.input}
+            placeholder="Город"
+            type="text"
+          />
+          {errors.city && (
+            <span className={styles.error}>{errors.city.message}</span>
+          )}
+        </label>
+
         <button className={styles.btn} type="submit">
           Начать прохождение теста
         </button>
+        {errorSubmit && <span className={styles.error}>{errorSubmit}</span>}
       </form>
     </div>
   );
