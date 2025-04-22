@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { getQuestions } from "api/api";
+import { getQuestions, sendTestResults } from "api/api";
 import styles from "./TestsPage.module.css";
-import { Question } from "src/api/types";
+import { Question, UserInfo } from "src/api/types";
+import { useNavigate } from "react-router-dom";
 
 export const TestsPage = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -9,8 +10,11 @@ export const TestsPage = () => {
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<string, string>
   >({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const currentQuestion = questions[currentQuestionIndex];
   const totalQuestions = questions.length;
+  const navigate = useNavigate();
 
   const handleAnswerSelect = (answerId: string) => {
     setSelectedAnswers({
@@ -19,7 +23,9 @@ export const TestsPage = () => {
     });
 
     if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setTimeout(() => {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      }, 300);
     }
   };
 
@@ -31,16 +37,64 @@ export const TestsPage = () => {
     return selectedAnswers[questionId] !== undefined;
   };
 
+  const areAllQuestionsAnswered = () => {
+    return questions.every((question) => isQuestionAnswered(question.id));
+  };
+
+  const submitResults = async () => {
+    if (!areAllQuestionsAnswered()) return;
+
+    setIsSubmitting(true);
+    try {
+      const uuid = localStorage.getItem("uuid") || "";
+      
+      const answers = questions.map((question) => ({
+        question_id: question.id,
+        answer_ids: [selectedAnswers[question.id]],
+      }));
+
+      const results: UserInfo = {
+        uuid,
+        answers,
+      };
+
+      await sendTestResults(results);
+      
+      navigate("/results");
+    } catch (error) {
+      console.error("Ошибка при отправке результатов:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     const makeRequest = async () => {
-      const data = await getQuestions();
-      setQuestions(data);
+      setIsLoading(true);
+      try {
+        const data = await getQuestions();
+        setQuestions(data);
+      } catch (error) {
+        console.error("Ошибка при загрузке вопросов:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     makeRequest();
   }, []);
 
+  useEffect(() => {
+    if (areAllQuestionsAnswered() && !isSubmitting) {
+      submitResults();
+    }
+  }, [selectedAnswers, questions.length]);
+
+  if (isLoading) {
+    return <div className={styles.loader}>Загрузка вопросов...</div>;
+  }
+
   if (!questions.length) {
-    return <div>Загрузка</div>;
+    return <div>Нет доступных вопросов</div>;
   }
 
   return (
@@ -73,6 +127,11 @@ export const TestsPage = () => {
               Завершено: {Object.keys(selectedAnswers).length} /{" "}
               {totalQuestions}
             </p>
+            {isSubmitting && (
+              <p className={styles.submittingMessage}>
+                Отправка результатов...
+              </p>
+            )}
           </div>
         </aside>
 
@@ -84,16 +143,16 @@ export const TestsPage = () => {
             <div className={styles.answersContainer}>
               {currentQuestion.answers.map((answer) => (
                 <div
-                  key={answer.uid}
+                  key={answer.uuid}
                   className={`
                     ${styles.answerItem} 
                     ${
-                      selectedAnswers[currentQuestion.id] === answer.uid
+                      selectedAnswers[currentQuestion.id] === answer.uuid
                         ? styles.selectedAnswer
                         : ""
                     }
                   `}
-                  onClick={() => handleAnswerSelect(answer.uid)}
+                  onClick={() => handleAnswerSelect(answer.uuid)}
                 >
                   <div className={styles.answerBadge}></div>
                   <span className={styles.answerText}>{answer.text}</span>
@@ -122,7 +181,7 @@ export const TestsPage = () => {
               }
               disabled={currentQuestionIndex === totalQuestions - 1}
             >
-              Сдедующий
+              Следующий
             </button>
           </div>
         </main>

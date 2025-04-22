@@ -6,6 +6,13 @@
   align-items: center;
 }
 
+.input:disabled {
+  background-color: #e9ecef;
+  border-color: #ced4da;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 @media (max-width: 768px) {
   .header {
     gap: 20px;
@@ -26,6 +33,12 @@
   max-width: 700px;
   height: auto;
   padding: 40px;
+  transition: opacity 0.3s ease;
+}
+
+.formDisabled {
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 .input {
@@ -62,6 +75,35 @@ input[type="number"] {
   color: white;
   border: none;
   font-size: 20px;
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+
+.btn:disabled {
+  background-color: #1a5a2a;
+  cursor: not-allowed;
+}
+
+.btnContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.preloader {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error {
@@ -78,4 +120,38 @@ input[type="number"] {
   gap: 5px;
   color: black;
   font-size: 20px;
+}
+
+.patronymicContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.patronymicContainer .error {
+  position: absolute;
+  bottom: -25px;
+  left: 0;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkboxLabel input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }

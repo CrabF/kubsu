@@ -92,6 +92,12 @@
   text-align: center;
 }
 
+.submittingMessage {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
 .mainContent {
   flex: 1;
   padding: 2rem;
@@ -120,7 +126,7 @@
   align-items: center;
   padding: 1rem;
   margin-bottom: 1rem;
-  background-color: white;
+  background-color: #f5f5dc;
   border-radius: 0.375rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -132,7 +138,7 @@
 }
 
 .answerItem:hover {
-  background-color: #f9fafb;
+  background-color: #f0ebdd;
 }
 
 .answerItem.selectedAnswer {
@@ -147,7 +153,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background-color: #ec4899;
+  background-color: #2e7f3e;
   color: white;
   font-size: 0.875rem;
   margin-right: 0.75rem;
@@ -186,5 +192,15 @@
 .navButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.25rem;
+  color: #15803d;
+  font-weight: 500;
 }
 

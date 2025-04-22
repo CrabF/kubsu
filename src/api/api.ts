@@ -16,29 +16,9 @@ export const getQuestions = async (): Promise<Question[]> => {
   }
 };
 
-export const checkResults = async (results: UserInfo): Promise<UserResults> => {
-  return fetch(BASE_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(results),
-  })
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error("Ошибка при получении данных");
-      }
-      return res.json();
-    })
-    .catch((error) => {
-      console.error("Ошибка:", error);
-      throw error;
-    });
-};
-
 export const getUserInfo = async (userInfo: UserData): Promise<UserResults> => {
   try {
-    const response = await fetch(BASE_URL, {
+    const response = await fetch(`${BASE_URL}applicant/by-data/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -49,5 +29,26 @@ export const getUserInfo = async (userInfo: UserData): Promise<UserResults> => {
   } catch (err) {
     console.error(err);
     throw new Error(`Ошибка при получении данных: ${err}`);
+  }
+};
+
+export const sendTestResults = async (results: UserInfo): Promise<UserResults> => {
+  try {
+    const response = await fetch(`${BASE_URL}results/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(results),
+    });
+    
+    if (!response.ok) {
+      throw new Error("Ошибка при отправке результатов");
+    }
+    
+    return await response.json();
+  } catch (err) {
+    console.error(err);
+    throw new Error(`Ошибка при отправке результатов: ${err}`);
   }
 };

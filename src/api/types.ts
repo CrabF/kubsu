@@ -21,19 +21,20 @@ export interface UserResults {
   name: string;
   patronymic: string;
   phone_number: string;
-  uid: string;
-  faculty_type: [
-    {
-      name: string;
-      compliance: 0;
-      faculties: [
-        {
-          name: string;
-          url: string;
-        }
-      ];
-    }
-  ];
+  city: string;
+  uuid: string;
+  faculty_type: FacultyType[];
+}
+
+export interface FacultyType {
+  name: string;
+  compliance: number;
+  faculties: Faculty[];
+}
+
+export interface Faculty {
+  name: string;
+  url: string;
 }
 
 export interface UserData {
@@ -41,6 +42,7 @@ export interface UserData {
   name: string;
   patronymic: string;
   phone_number: string;
+  city: string;
 }
 
 export interface Question {
@@ -50,7 +52,7 @@ export interface Question {
 }
 
 interface Answers {
-  uid: string;
+  uuid: string;
   question_id: string;
   text: string;
 }
