@@ -1,9 +1,8 @@
 import { SubmitHandler, useForm } from "react-hook-form";
 import styles from "./MainPage.module.css";
-import { getUserInfo, sendTestResults, getQuestions } from "api/api";
+import { registerUser } from "api/api";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserResults } from "src/api/types";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -33,7 +32,6 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 
 export const MainPage = () => {
-  const [userInfo, setUserInfo] = useState<UserResults>();
   const [errorSubmit, setErrorSubmit] = useState("");
   const [noPatronymic, setNoPatronymic] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,44 +51,14 @@ export const MainPage = () => {
   const onSubmit: SubmitHandler<Schema> = async (inputsData) => {
     setIsLoading(true);
     setErrorSubmit("");
-    
+  
     try {
-      const userResult = await getUserInfo(inputsData);
-      setUserInfo(userResult);
-      
-      if (userResult.faculty_type && userResult.faculty_type.length > 0) {
-        navigate("/results");
-        return;
-      }
-      
+      const userResult = await registerUser(inputsData);    
       if (userResult.uuid) {
         localStorage.setItem("uuid", userResult.uuid);
-        
-        try {
-          await sendTestResults({
-            uuid: userResult.uuid,
-            answers: []
-          });
-          
-          await getQuestions();
-          navigate("/tests");
-        } catch (error: unknown) {
-          const apiError = error as { status?: number };
-          
-          if (apiError.status === 422) {
-            await getQuestions();
-            navigate("/tests");
-          } else {
-            setErrorSubmit(
-              "Произошла ошибка при проверке результатов. Попробуйте ещё раз."
-            );
-            console.error("Ошибка:", error);
-          }
-        }
+        navigate("/tests");
       } else {
-        setErrorSubmit(
-          "Не удалось получить идентификатор пользователя. Попробуйте ещё раз."
-        );
+        setErrorSubmit("Не удалось получить идентификатор пользователя");
       }
     } catch (error) {
       setErrorSubmit(
@@ -102,12 +70,6 @@ export const MainPage = () => {
     }
   };
 
-  useEffect(() => {
-    if (!localStorage.getItem("uuid") && userInfo?.uuid) {
-      localStorage.setItem("uuid", userInfo.uuid);
-    }
-  }, [userInfo]);
-
   const handleNoPatronymicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
     setNoPatronymic(isChecked);
@@ -116,6 +78,13 @@ export const MainPage = () => {
       setValue("patronymic", "");
     }
   };
+
+  // useEffect(() => {
+  //   const existingUuid = localStorage.getItem("uuid");
+  //   if (existingUuid) {
+  //     navigate("/results");
+  //   }
+  // }, [navigate]);
 
   return (
     <div className={styles.container}>

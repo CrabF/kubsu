@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getQuestions, sendTestResults } from "api/api";
+import { getQuestions, getTestResults } from "api/api";
 import styles from "./TestsPage.module.css";
 import { Question, UserInfo } from "src/api/types";
 import { useNavigate } from "react-router-dom";
@@ -12,17 +12,26 @@ export const TestsPage = () => {
   >({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const currentQuestion = questions[currentQuestionIndex];
   const totalQuestions = questions.length;
   const navigate = useNavigate();
 
   const handleAnswerSelect = (answerId: string) => {
-    setSelectedAnswers({
+    const newSelectedAnswers = {
       ...selectedAnswers,
       [currentQuestion.id]: answerId,
-    });
+    };
+    setSelectedAnswers(newSelectedAnswers);
 
-    if (currentQuestionIndex < totalQuestions - 1) {
+    // Проверяем, все ли вопросы отвечены после обновления ответов
+    const allQuestionsAnswered = questions.every(
+      (question) => newSelectedAnswers[question.id] !== undefined
+    );
+
+    if (allQuestionsAnswered) {
+      submitResults();
+    } else if (currentQuestionIndex < totalQuestions - 1) {
       setTimeout(() => {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       }, 300);
@@ -46,7 +55,13 @@ export const TestsPage = () => {
 
     setIsSubmitting(true);
     try {
-      const uuid = localStorage.getItem("uuid") || "";
+      const uuid = localStorage.getItem("uuid");
+      
+      if (!uuid) {
+        console.error("UUID не найден");
+        navigate('/');
+        return;
+      }
       
       const answers = questions.map((question) => ({
         question_id: question.id,
@@ -58,11 +73,16 @@ export const TestsPage = () => {
         answers,
       };
 
-      await sendTestResults(results);
+      const response = await getTestResults(results);
+     
+      if (response) {
+        localStorage.setItem("testResults", JSON.stringify(response));
+        navigate("/results");
+      }
       
-      navigate("/results");
     } catch (error) {
       console.error("Ошибка при отправке результатов:", error);
+      setError("Произошла ошибка при отправке результатов");
     } finally {
       setIsSubmitting(false);
     }
@@ -72,25 +92,40 @@ export const TestsPage = () => {
     const makeRequest = async () => {
       setIsLoading(true);
       try {
+        const uuid = localStorage.getItem("uuid");
+        
+        if (!uuid) {
+          console.error("UUID не найден");
+          navigate('/');
+          return;
+        }
+        
         const data = await getQuestions();
         setQuestions(data);
       } catch (error) {
         console.error("Ошибка при загрузке вопросов:", error);
+        setError("Произошла ошибка при загрузке вопросов");
       } finally {
         setIsLoading(false);
       }
     };
     makeRequest();
-  }, []);
-
-  useEffect(() => {
-    if (areAllQuestionsAnswered() && !isSubmitting) {
-      submitResults();
-    }
-  }, [selectedAnswers, questions.length]);
+  }, [navigate]);
 
   if (isLoading) {
     return <div className={styles.loader}>Загрузка вопросов...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.title}>Ошибка</h1>
+        <p className={styles.error}>{error}</p>
+        <button className={styles.restartButton} onClick={() => navigate('/')}>
+          Вернуться на главную
+        </button>
+      </div>
+    );
   }
 
   if (!questions.length) {
